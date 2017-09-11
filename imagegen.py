@@ -1,17 +1,24 @@
-import requests
 import random
+import sys
+import requests
 import matplotlib.pyplot as plt
 import numpy as np
 
 # If USE_RANDOM_DOT_ORG is false, we will simply generate random numbers with numpy.
-USE_RANDOM_DOT_ORG = False
+USE_RANDOM_DOT_ORG = True
 
-def check_quota():
+# Max number of pixels in either dimension.
+MAX_SIZE = 128
+
+# Checks the remaining quota from random.org, i.e the number of bits still available.
+def get_quota():
 	return int(requests.get("https://www.random.org/quota/?format=plain").text)
 
 def generate_random_integers(num, min_val, max_val):
-	quota = check_quota()
-	if quota == 0:
+	# If we've exceeded the quota at the moment, tell the user to try again later.
+	quota = get_quota()
+	print "Current quota: " + str(quota) 
+	if quota <= 0:
 		raise Exception("Sorry, your random.org API limit is exceeded at the moment. Please try again later.")
 
 	ret = []
@@ -39,11 +46,10 @@ def display_random_RGB_image(width, height):
 	# random.org's API unnecessarily.
 	if USE_RANDOM_DOT_ORG:
 		random_integers = generate_random_integers(width * height * 3, 0, 255)
+		# Reshape the array to be width x height x 3.
+		rgb_array = np.asarray(random_integers).reshape((width, height, 3))
 	else:
-		random_integers = np.random.random((width, height, 3))
-
-	# Reshape the array to be width x height x 3.
-	rgb_array = np.asarray(random_integers).reshape((width, height, 3))
+		rgb_array = np.random.random((width, height, 3))	
 
 	# Display the image using matplot.
 	img = plt.imshow(rgb_array)
@@ -51,5 +57,33 @@ def display_random_RGB_image(width, height):
 	plt.axis('off')
 	plt.show()
 
-display_random_RGB_image(128, 128)
+def help():
+	# Print usage information if the user malforms their command.
+	print ("Usage: python imagegen.py HEIGHT WIDTH\n" 
+	 		"Dimensions must be integers in [1, " + str(MAX_SIZE) + "]. "
+	 		"If you supply no width or height, uses 128x128 by default."
+	 		)
 
+def main(args):
+	# By default, display a 128x128 image.
+	if len(args) == 1:
+		display_random_RGB_image(128, 128)
+	# If the user supplied a width and height, use that instead.
+	elif len(args) == 3:
+		try:
+			width = int(args[1])
+			height = int(args[2])
+		except:
+			help()
+			return
+
+		if width <= 0 or width > MAX_SIZE or height <= 0 or height > MAX_SIZE:
+			help()
+			return
+
+		display_random_RGB_image(width, height)
+	else:
+		help()
+
+if __name__ == "__main__": 
+	main(sys.argv)
