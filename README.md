@@ -8,5 +8,4 @@ Usage:
 ```
 python imagegen.py HEIGHT WIDTH
 Dimensions must be integers in [1, 200]. If WIDTH and HEIGHT aren't supplied, uses 128x128 by default.
-
 ```
