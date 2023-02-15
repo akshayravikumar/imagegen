@@ -17,7 +17,7 @@ def get_quota():
 def generate_random_integers(num, min_val, max_val):
 	# If we've exceeded the quota at the moment, tell the user to try again later.
 	quota = get_quota()
-	print "Current quota: " + str(quota) 
+	print("Current quota: " + str(quota))
 	if quota <= 0:
 		raise Exception("Sorry, your random.org API limit is exceeded at the moment. Please try again later.")
 
